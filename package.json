@@ -1,0 +1,38 @@
+{
+  "name": "hostithub",
+  "version": "1.0.0",
+  "description": "Comprehensive vacation rental management platform - HostItHub",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean",
+    "test": "turbo run test",
+    "test:stripe": "node test-stripe-integration.js",
+    "test:webhooks": "node test-stripe-webhooks.js",
+    "test:simulated": "node test-simulated-stripe.js",
+    "setup:stripe": "chmod +x setup-stripe-test.sh && ./setup-stripe-test.sh"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^2.8.0",
+    "turbo": "latest",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "packageManager": "npm@9.0.0",
+  "dependencies": {
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.16",
+    "googleapis": "^152.0.0",
+    "node-cron": "^4.2.0"
+  }
+}

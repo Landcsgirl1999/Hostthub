@@ -1,0 +1,44 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "removeComments": true,
+    "noImplicitAny": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": false,
+    "exactOptionalPropertyTypes": false
+  },
+  "include": [
+    "src/index.ts",
+    "src/middleware/auth.ts",
+    "src/routes/auth.ts",
+    "src/routes/users.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/routes/analytics.ts",
+    "src/routes/billing.ts",
+    "src/routes/consultations.ts",
+    "src/routes/properties.ts",
+    "src/routes/property-assignments.ts",
+    "src/routes/settings.ts",
+    "src/routes/subscriptions.ts",
+    "src/routes/time-tracking.ts",
+    "src/services/**/*",
+    "src/middleware/security.ts",
+    "src/middleware/upload.ts"
+  ]
+} 

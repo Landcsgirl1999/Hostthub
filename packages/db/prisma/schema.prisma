@@ -1,0 +1,1040 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String                  @id @default(cuid())
+  email                  String                  @unique
+  name                   String
+  password               String
+  role                   UserRole                @default(ADMIN)
+  isActive               Boolean                 @default(true)
+  isOnHold               Boolean                 @default(false)
+  emailVerified          Boolean                 @default(false)
+  canCreateUsers         Boolean                 @default(false)
+  phoneNumber            String?
+  address                String?
+  birthday               DateTime?
+  title                  String?
+  lastLogin              DateTime?
+  photoUrl               String?
+  preferredContactMethod PreferredContactMethod? @default(EMAIL)
+  emergencyNumber        String?
+  accessPermissions      AccessPermission[]
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  accountId              String?
+  createdById            String?
+  twoFactorEnabled       Boolean                 @default(false)
+  twoFactorSecret        String?
+  expenses               Expense[]
+  messages               Message[]
+  platformIntegrations   PlatformIntegration[]
+  ownedProperties        Property[]              @relation("PropertyOwner")
+  propertyAssignments    PropertyAssignment[]    @relation("PropertyAssignment")
+  reservations           Reservation[]           @relation("AssignedUser")
+  tasks                  Task[]                  @relation("AssignedUser")
+  timeEntries            TimeEntry[]
+  userNotifications      UserNotification[]
+  userPermissions        UserPermission[]
+  subscriptions          UserSubscription[]
+  account                Account?                @relation(fields: [accountId], references: [id])
+  createdBy              User?                   @relation("UserCreator", fields: [createdById], references: [id])
+  createdUsers           User[]                  @relation("UserCreator")
+
+  @@map("users")
+}
+
+model UserPermission {
+  id         String             @id @default(cuid())
+  category   PermissionCategory
+  permission PermissionLevel
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  userId     String
+  user       User               @relation(fields: [userId], references: [id])
+
+  @@unique([userId, category, permission])
+  @@map("user_permissions")
+}
+
+model UserNotification {
+  id        String              @id @default(cuid())
+  event     NotificationEvent
+  channel   NotificationChannel
+  isEnabled Boolean             @default(true)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  userId    String
+  user      User                @relation(fields: [userId], references: [id])
+
+  @@unique([userId, event, channel])
+  @@map("user_notifications")
+}
+
+model Account {
+  id                  String                @id @default(cuid())
+  accountNumber       Int?                  @unique
+  name                String
+  description         String?
+  isActive            Boolean               @default(true)
+  isOnHold            Boolean               @default(false)
+  stripeCustomerId    String?
+  lastBillingDate     DateTime?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  billingRecords      BillingRecord[]
+  billingSettings     BillingSettings?
+  calendarEvents      CalendarEvent[]
+  companySettings     CompanySettings?
+  integrationSettings IntegrationSettings?
+  invoiceTemplates    InvoiceTemplate[]
+  paymentMethods      StoredPaymentMethod[]
+  properties          Property[]
+  users               User[]
+
+  @@map("accounts")
+}
+
+model CompanySettings {
+  id              String   @id @default(cuid())
+  companyName     String
+  logoUrl         String?
+  website         String?
+  phoneNumber     String?
+  address         String?
+  city            String?
+  state           String?
+  zipCode         String?
+  country         String?
+  contactEmail    String
+  invoiceEmail    String?
+  supportEmail    String?
+  hostitAccountId String?
+  accountNumber   String?
+  taxId           String?
+  businessLicense String?
+  timezone        String   @default("UTC")
+  currency        String   @default("USD")
+  language        String   @default("en")
+  invoicePrefix   String?  @default("INV")
+  invoiceNumber   Int      @default(1)
+  autoIncrement   Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  accountId       String   @unique
+  account         Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("company_settings")
+}
+
+model BillingSettings {
+  id                       String   @id @default(cuid())
+  bankAccountInfo          Json?
+  autoGenerateInvoices     Boolean  @default(true)
+  lateFeePercentage        Decimal  @default(0.05)
+  lateFeeAmount            Decimal  @default(0)
+  taxRate                  Decimal  @default(0)
+  taxIncluded              Boolean  @default(false)
+  taxExemptionNumber       String?
+  billingCycle             String   @default("monthly")
+  billingDay               Int      @default(1)
+  sendInvoiceReminders     Boolean  @default(true)
+  reminderDays             Int[]    @default([7, 3, 1])
+  sendPaymentConfirmations Boolean  @default(true)
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  accountId                String   @unique
+  account                  Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("billing_settings")
+}
+
+model IntegrationSettings {
+  id                    String   @id @default(cuid())
+  hostitApiKey          String?
+  hostitApiSecret       String?
+  hostitWebhookUrl      String?
+  hostitNotifications   Boolean  @default(true)
+  stripeEnabled         Boolean  @default(false)
+  stripePublishableKey  String?
+  stripeSecretKey       String?
+  paypalEnabled         Boolean  @default(false)
+  paypalClientId        String?
+  paypalSecret          String?
+  googleCalendarEnabled Boolean  @default(false)
+  googleCalendarId      String?
+  googleApiKey          String?
+  twilioEnabled         Boolean  @default(false)
+  twilioAccountSid      String?
+  twilioAuthToken       String?
+  twilioPhoneNumber     String?
+  sendgridEnabled       Boolean  @default(false)
+  sendgridApiKey        String?
+  sendgridFromEmail     String?
+  airbnbEnabled         Boolean  @default(false)
+  airbnbApiKey          String?
+  airbnbApiSecret       String?
+  vrboEnabled           Boolean  @default(false)
+  vrboApiKey            String?
+  vrboApiSecret         String?
+  bookingComEnabled     Boolean  @default(false)
+  bookingComApiKey      String?
+  bookingComApiSecret   String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  accountId             String   @unique
+  account               Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("integration_settings")
+}
+
+model InvoiceTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  template    String
+  isDefault   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  accountId   String
+  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("invoice_templates")
+}
+
+model SubscriptionPlan {
+  id            String             @id @default(cuid())
+  name          String
+  description   String?
+  basePrice     Decimal
+  currency      String             @default("USD")
+  interval      BillingInterval
+  minProperties Int
+  maxProperties Int
+  maxUsers      Int
+  features      String[]
+  isActive      Boolean            @default(true)
+  isPopular     Boolean            @default(false)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  subscriptions UserSubscription[]
+
+  @@map("subscription_plans")
+}
+
+model UserSubscription {
+  id                String             @id @default(cuid())
+  status            SubscriptionStatus @default(ACTIVE)
+  startDate         DateTime
+  endDate           DateTime?
+  trialEndDate      DateTime?
+  cancelAtPeriodEnd Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  userId            String
+  planId            String
+  BillingRecord     BillingRecord[]
+  PropertyCharge    PropertyCharge[]
+  plan              SubscriptionPlan   @relation(fields: [planId], references: [id])
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_subscriptions")
+}
+
+model BillingRecord {
+  id              String               @id @default(cuid())
+  amount          Decimal
+  currency        String               @default("USD")
+  status          BillingStatus        @default(PENDING)
+  dueDate         DateTime
+  paidDate        DateTime?
+  description     String?
+  metadata        Json                 @default("{}")
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  accountId       String
+  subscriptionId  String?
+  paymentMethodId String?
+  account         Account              @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  paymentMethod   StoredPaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+  subscription    UserSubscription?    @relation(fields: [subscriptionId], references: [id])
+  propertyCharges PropertyCharge[]
+
+  @@map("billing_records")
+}
+
+model PropertyCharge {
+  id              String               @id @default(cuid())
+  amount          Decimal
+  chargeType      PropertyChargeType
+  status          PropertyChargeStatus @default(PENDING)
+  description     String?
+  metadata        Json                 @default("{}")
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  propertyId      String
+  billingRecordId String?
+  subscriptionId  String?
+  billingRecord   BillingRecord?       @relation(fields: [billingRecordId], references: [id])
+  property        Property             @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  subscription    UserSubscription?    @relation(fields: [subscriptionId], references: [id])
+
+  @@map("property_charges")
+}
+
+model Property {
+  id                   String                @id @default(cuid())
+  name                 String
+  description          String?
+  address              String
+  city                 String
+  state                String
+  zipCode              String
+  country              String
+  latitude             Float?
+  longitude            Float?
+  propertyType         PropertyType
+  bedrooms             Int
+  bathrooms            Int
+  maxGuests            Int
+  basePrice            Decimal
+  currency             String                @default("USD")
+  isActive             Boolean               @default(true)
+  isOnHold             Boolean               @default(false)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  accountId            String?
+  ownerId              String
+  amenityMultipliers   AmenityMultiplier[]
+  calendars            Calendar[]
+  competitorPrices     CompetitorPrice[]
+  dailyPrices          DailyPrice[]
+  dynamicPricingConfig DynamicPricingConfig?
+  expenses             Expense[]
+  listings             Listing[]
+  marketData           MarketData[]
+  platformProperties   PlatformProperty[]
+  PricingHistory       PricingHistory[]
+  pricingRules         PricingRule[]
+  account              Account?              @relation(fields: [accountId], references: [id])
+  owner                User                  @relation("PropertyOwner", fields: [ownerId], references: [id])
+  propertyAssignments  PropertyAssignment[]
+  propertyCharges      PropertyCharge[]
+  reservations         Reservation[]
+  reviews              Review[]
+  seasonalAdjustments  SeasonalAdjustment[]
+  tasks                Task[]
+
+  @@map("properties")
+}
+
+model PropertyAssignment {
+  id          String   @id @default(cuid())
+  role        String   @default("MANAGER")
+  permissions Json     @default("{}")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  user        User     @relation("PropertyAssignment", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, propertyId])
+  @@map("property_assignments")
+}
+
+model Calendar {
+  id         String          @id @default(cuid())
+  name       String
+  url        String
+  platform   Platform
+  isActive   Boolean         @default(true)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  propertyId String
+  events     CalendarEvent[]
+  property   Property        @relation(fields: [propertyId], references: [id])
+
+  @@map("calendars")
+}
+
+model CalendarEvent {
+  id          String   @id @default(cuid())
+  title       String
+  startDate   DateTime
+  endDate     DateTime
+  description String?
+  isBlocked   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  calendarId  String
+  accountId   String
+  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  calendar    Calendar @relation(fields: [calendarId], references: [id])
+
+  @@map("calendar_events")
+}
+
+model Reservation {
+  id             String             @id @default(cuid())
+  guestName      String
+  guestEmail     String
+  guestPhone     String?
+  checkIn        DateTime
+  checkOut       DateTime
+  guests         Int
+  totalAmount    Decimal
+  currency       String             @default("USD")
+  status         ReservationStatus  @default(PENDING)
+  notes          String?
+  metadata       Json               @default("{}")
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  propertyId     String
+  assignedUserId String?
+  expenses       Expense[]
+  messages       Message[]
+  payments       Payment[]
+  extras         ReservationExtra[]
+  assignedUser   User?              @relation("AssignedUser", fields: [assignedUserId], references: [id])
+  property       Property           @relation(fields: [propertyId], references: [id])
+  reviews        Review[]
+
+  @@map("reservations")
+}
+
+model ReservationExtra {
+  id            String      @id @default(cuid())
+  name          String
+  description   String?
+  amount        Decimal
+  quantity      Int         @default(1)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  reservationId String
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@map("reservation_extras")
+}
+
+model Payment {
+  id            String      @id @default(cuid())
+  amount        Decimal
+  currency      String      @default("USD")
+  method        String      @default("CARD")
+  status        String      @default("PENDING")
+  transactionId String?
+  metadata      Json        @default("{}")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  reservationId String
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model Task {
+  id             String      @id @default(cuid())
+  title          String
+  description    String?
+  taskType       TaskType
+  priority       Priority    @default(MEDIUM)
+  status         TaskStatus  @default(PENDING)
+  dueDate        DateTime?
+  completedAt    DateTime?
+  estimatedHours Float?
+  actualHours    Float?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  propertyId     String
+  assignedUserId String?
+  assignedUser   User?       @relation("AssignedUser", fields: [assignedUserId], references: [id])
+  property       Property    @relation(fields: [propertyId], references: [id])
+  timeEntries    TimeEntry[]
+
+  @@map("tasks")
+}
+
+model TimeEntry {
+  id          String    @id @default(cuid())
+  startTime   DateTime
+  endTime     DateTime?
+  duration    Float?
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  userId      String
+  taskId      String?
+  task        Task?     @relation(fields: [taskId], references: [id])
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("time_entries")
+}
+
+model Message {
+  id            String        @id @default(cuid())
+  subject       String?
+  content       String
+  messageType   MessageType   @default(RESERVATION)
+  status        MessageStatus @default(SENT)
+  metadata      Json          @default("{}")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  reservationId String?
+  senderId      String
+  reservation   Reservation?  @relation(fields: [reservationId], references: [id])
+  sender        User          @relation(fields: [senderId], references: [id])
+
+  @@map("messages")
+}
+
+model Expense {
+  id            String          @id @default(cuid())
+  description   String
+  amount        Decimal
+  currency      String          @default("USD")
+  category      ExpenseCategory
+  date          DateTime
+  receiptUrl    String?
+  notes         String?
+  metadata      Json            @default("{}")
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  propertyId    String?
+  reservationId String?
+  userId        String
+  property      Property?       @relation(fields: [propertyId], references: [id])
+  reservation   Reservation?    @relation(fields: [reservationId], references: [id])
+  user          User            @relation(fields: [userId], references: [id])
+
+  @@map("expenses")
+}
+
+model Listing {
+  id          String   @id @default(cuid())
+  platform    Platform
+  externalId  String
+  externalUrl String?
+  isActive    Boolean  @default(true)
+  metadata    Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id])
+
+  @@map("listings")
+}
+
+model Review {
+  id            String       @id @default(cuid())
+  rating        Int
+  title         String?
+  content       String?
+  platform      Platform
+  externalId    String?
+  isVerified    Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  propertyId    String
+  reservationId String?
+  property      Property     @relation(fields: [propertyId], references: [id])
+  reservation   Reservation? @relation(fields: [reservationId], references: [id])
+
+  @@map("reviews")
+}
+
+model ConsultationRequest {
+  id            String   @id @default(cuid())
+  name          String
+  email         String
+  phone         String?
+  message       String
+  propertyCount Int
+  isContacted   Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("consultation_requests")
+}
+
+model DynamicPricingConfig {
+  id         String   @id @default(cuid())
+  isEnabled  Boolean  @default(false)
+  basePrice  Decimal
+  minPrice   Decimal?
+  maxPrice   Decimal?
+  algorithm  String   @default("DEMAND")
+  settings   Json     @default("{}")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  propertyId String   @unique
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("dynamic_pricing_configs")
+}
+
+model PricingRule {
+  id          String          @id @default(cuid())
+  name        String
+  description String?
+  ruleType    PricingRuleType
+  conditions  Json
+  adjustment  Decimal
+  isActive    Boolean         @default(true)
+  priority    Int             @default(0)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  propertyId  String
+  property    Property        @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("pricing_rules")
+}
+
+model MarketData {
+  id         String   @id @default(cuid())
+  date       DateTime
+  location   String
+  avgPrice   Decimal
+  occupancy  Float
+  demand     String   @default("NORMAL")
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, date, location])
+  @@map("market_data")
+}
+
+model SeasonalAdjustment {
+  id         String   @id @default(cuid())
+  name       String
+  startDate  DateTime
+  endDate    DateTime
+  adjustment Decimal
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("seasonal_adjustments")
+}
+
+model AmenityMultiplier {
+  id          String   @id @default(cuid())
+  amenityName String
+  multiplier  Decimal
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, amenityName])
+  @@map("amenity_multipliers")
+}
+
+model CompetitorPrice {
+  id             String   @id @default(cuid())
+  competitorName String
+  price          Decimal
+  date           DateTime
+  source         String?
+  metadata       Json     @default("{}")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  propertyId     String
+  property       Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, competitorName, date])
+  @@map("competitor_prices")
+}
+
+model PricingHistory {
+  id         String   @id @default(cuid())
+  date       DateTime
+  price      Decimal
+  reason     String?
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, date])
+  @@map("pricing_history")
+}
+
+model DailyPrice {
+  id          String   @id @default(cuid())
+  date        DateTime
+  price       Decimal
+  isAvailable Boolean  @default(true)
+  metadata    Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, date])
+  @@map("daily_prices")
+}
+
+model StoredPaymentMethod {
+  id                    String              @id @default(cuid())
+  type                  PaymentMethodType
+  isDefault             Boolean             @default(false)
+  isActive              Boolean             @default(true)
+  metadata              Json                @default("{}")
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  accountId             String
+  stripePaymentMethodId String?
+  stripeCustomerId      String?
+  bankAccountDetails    BankAccountDetails?
+  billingRecords        BillingRecord[]
+  cardDetails           CardDetails?
+  account               Account             @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("payment_methods")
+}
+
+model CardDetails {
+  id                   String              @id @default(cuid())
+  encryptedCardNumber  String
+  encryptedExpiryMonth String
+  encryptedExpiryYear  String
+  encryptedCvv         String?
+  cardholderName       String
+  lastFourDigits       String
+  cardBrand            String
+  expiryMonth          String
+  expiryYear           String
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  paymentMethodId      String              @unique
+  paymentMethod        StoredPaymentMethod @relation(fields: [paymentMethodId], references: [id], onDelete: Cascade)
+
+  @@map("card_details")
+}
+
+model BankAccountDetails {
+  id                     String              @id @default(cuid())
+  encryptedAccountNumber String
+  encryptedRoutingNumber String
+  accountHolderName      String
+  bankName               String
+  accountType            String
+  lastFourDigits         String
+  routingNumberLastFour  String
+  bankNameDisplay        String
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+  paymentMethodId        String              @unique
+  paymentMethod          StoredPaymentMethod @relation(fields: [paymentMethodId], references: [id], onDelete: Cascade)
+
+  @@map("bank_account_details")
+}
+
+model ExternalPlatform {
+  id           String                @id @default(cuid())
+  name         String                @unique
+  displayName  String
+  description  String?
+  logoUrl      String?
+  apiEndpoint  String?
+  isActive     Boolean               @default(true)
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  integrations PlatformIntegration[]
+  properties   PlatformProperty[]
+
+  @@map("external_platforms")
+}
+
+model PlatformIntegration {
+  id            String             @id @default(cuid())
+  userId        String
+  platformId    String
+  apiKey        String?
+  apiSecret     String?
+  accessToken   String?
+  refreshToken  String?
+  settings      Json               @default("{}")
+  status        IntegrationStatus  @default(PENDING)
+  lastSync      DateTime?
+  syncFrequency Int                @default(3600)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  platform      ExternalPlatform   @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  properties    PlatformProperty[]
+
+  @@unique([userId, platformId])
+  @@map("platform_integrations")
+}
+
+model PlatformProperty {
+  id            String              @id @default(cuid())
+  platformId    String
+  integrationId String
+  propertyId    String
+  externalId    String
+  externalUrl   String?
+  status        PropertySyncStatus  @default(PENDING)
+  lastSync      DateTime?
+  syncSettings  Json                @default("{}")
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  integration   PlatformIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  platform      ExternalPlatform    @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  property      Property            @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([platformId, externalId])
+  @@unique([integrationId, propertyId])
+  @@map("platform_properties")
+}
+
+enum PreferredContactMethod {
+  EMAIL
+  PHONE
+  SMS
+}
+
+enum AccessPermission {
+  OWNER_MANAGER_PERMISSIONS
+  CONTACT_DATA_ACCESS
+  FINANCIAL_DATA_ACCESS
+  NIGHTLY_CALENDAR_ACCESS
+  INQUIRIES_BOOKING_ACCESS
+  CANCELLED_RESERVATIONS_ACCESS
+  NEW_LISTINGS_ACCESS
+  GUEST_NOTES_ACCESS
+  HOST_NOTES_ACCESS
+}
+
+enum PermissionLevel {
+  VIEW
+  MODIFY
+  CREATE
+  DELETE
+}
+
+enum NotificationChannel {
+  RESERVATION_DASHBOARD
+  MOBILE_APP
+  EMAIL
+}
+
+enum NotificationEvent {
+  NEW_RESERVATION
+  NEW_OWNER_STAY
+  OWNER_STAY_MODIFIED
+  RESERVATION_CANCELLED
+  NEW_INQUIRY
+  RESERVATION_PENDING
+  AIRBNB_ALTERATION_REQUEST
+  RENTAL_AGREEMENT_SIGNED
+  ADD_CARD_SUCCESS
+  ADD_CARD_FAILED
+  CHARGE_SUCCESS
+  CHARGE_FAILED
+  REFUND_SUCCESS
+  REFUND_FAILED
+  PRE_AUTH_SUCCESS
+  PRE_AUTH_FAILED
+}
+
+enum PermissionCategory {
+  LISTINGS
+  RESERVATIONS
+  OWNER_STAYS
+  BOOKING_ENGINE
+  FINANCIAL_REPORTING
+  ANALYTICS
+  RENTAL_ACTIVITY
+  OCCUPANCY_REPORT
+  EXPENSES_EXTRAS
+  OWNER_STATEMENTS
+  CHANNEL_MANAGER
+  TASK_MANAGER
+  INTEGRATIONS
+  AUTOMATIONS
+  MESSAGES
+  GUEST_INVOICING
+  REVIEWS
+  GUESTBOOK
+  SMART_LOCK_CODES
+  SAFELY_INSURANCE
+  NOTIFICATION_SETTINGS
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  USER
+}
+
+enum BillingInterval {
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  PENDING
+  PAST_DUE
+}
+
+enum BillingStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum PropertyChargeType {
+  SUBSCRIPTION
+  SETUP
+  OVERAGE
+  ADDON
+}
+
+enum PropertyChargeStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PropertyType {
+  HOUSE
+  APARTMENT
+  CONDO
+  TOWNHOUSE
+  VILLA
+  CABIN
+  COTTAGE
+  LOFT
+  STUDIO
+  OTHER
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum TaskType {
+  CLEANING
+  MAINTENANCE
+  INSPECTION
+  REPAIR
+  RENOVATION
+  ADMINISTRATIVE
+  OTHER
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum MessageType {
+  RESERVATION
+  INQUIRY
+  SUPPORT
+  SYSTEM
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+enum ExpenseCategory {
+  CLEANING
+  MAINTENANCE
+  REPAIRS
+  UTILITIES
+  INSURANCE
+  TAXES
+  COMMISSIONS
+  SUPPLIES
+  OTHER
+}
+
+enum Platform {
+  AIRBNB
+  VRBO
+  BOOKING_COM
+  DIRECT
+  OTHER
+}
+
+enum PricingRuleType {
+  SEASONAL
+  WEEKEND
+  HOLIDAY
+  EVENT
+  DEMAND
+  COMPETITOR
+}
+
+enum PriceType {
+  NIGHTLY
+  WEEKLY
+  MONTHLY
+}
+
+enum PaymentMethodType {
+  CARD
+  BANK_ACCOUNT
+  PAYPAL
+}
+
+enum IntegrationStatus {
+  PENDING
+  CONNECTED
+  DISCONNECTED
+  ERROR
+  SYNCING
+}
+
+enum PropertySyncStatus {
+  PENDING
+  SYNCED
+  SYNCING
+  ERROR
+  DISCONNECTED
+}

@@ -1,0 +1,36 @@
+{
+  "name": "@hostithub/db",
+  "version": "1.0.0",
+      "description": "Database package for HostItHub with Prisma ORM",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.0.0",
+    "@types/bcryptjs": "^2.4.6",
+    "bcryptjs": "^3.0.2",
+    "googleapis": "^150.0.1",
+    "qrcode": "^1.5.4",
+    "speakeasy": "^2.0.0",
+    "stripe": "^18.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.10",
+    "prisma": "^5.0.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^3.12.0",
+    "typescript": "^5.8.3"
+  }
+}
