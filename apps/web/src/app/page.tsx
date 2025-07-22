@@ -15,7 +15,8 @@ import {
   Star,
   Users,
   Play,
-  Phone
+  Phone,
+  ArrowRight
 } from 'lucide-react';
 
 export default function Home() {
@@ -38,17 +39,19 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <Link
                 href="/demo"
-                className="inline-flex items-center space-x-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="inline-flex items-center space-x-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl group"
               >
                 <Play className="w-5 h-5" />
                 <span>Watch Demo</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 href="/consultation"
-                className="inline-flex items-center space-x-2 px-8 py-4 border-2 border-blue-600 text-blue-600 rounded-full font-semibold hover:bg-blue-600 hover:text-white transition-all duration-200"
+                className="inline-flex items-center space-x-2 px-8 py-4 border-2 border-blue-600 text-blue-600 rounded-full font-semibold hover:bg-blue-600 hover:text-white transition-all duration-200 group"
               >
                 <Phone className="w-5 h-5" />
                 <span>Book Free Consultation</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
             {/* Social Proof */}
@@ -83,7 +86,7 @@ export default function Home() {
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 hover:shadow-lg transition-all duration-200">
               <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mb-6">
                 <Calendar className="w-6 h-6 text-white" />
               </div>
@@ -106,7 +109,7 @@ export default function Home() {
                 </li>
               </ul>
             </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-8">
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-8 hover:shadow-lg transition-all duration-200">
               <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center mb-6">
                 <MessageSquare className="w-6 h-6 text-white" />
               </div>
@@ -129,7 +132,7 @@ export default function Home() {
                 </li>
               </ul>
             </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-8">
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-8 hover:shadow-lg transition-all duration-200">
               <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center mb-6">
                 <BarChart3 className="w-6 h-6 text-white" />
               </div>
@@ -152,7 +155,7 @@ export default function Home() {
                 </li>
               </ul>
             </div>
-            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-8">
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-8 hover:shadow-lg transition-all duration-200">
               <div className="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center mb-6">
                 <Settings className="w-6 h-6 text-white" />
               </div>
@@ -175,7 +178,7 @@ export default function Home() {
                 </li>
               </ul>
             </div>
-            <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-2xl p-8">
+            <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-2xl p-8 hover:shadow-lg transition-all duration-200">
               <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center mb-6">
                 <DollarSign className="w-6 h-6 text-white" />
               </div>
@@ -198,7 +201,7 @@ export default function Home() {
                 </li>
               </ul>
             </div>
-            <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-2xl p-8">
+            <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-2xl p-8 hover:shadow-lg transition-all duration-200">
               <div className="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mb-6">
                 <Shield className="w-6 h-6 text-white" />
               </div>
@@ -237,21 +240,24 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/consultation"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full text-lg font-semibold transition-colors"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full text-lg font-semibold transition-colors inline-flex items-center space-x-2 group"
             >
-              Book Free Consultation
+              <span>Book Free Consultation</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
               href="/demo"
-              className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-3 rounded-full text-lg font-semibold transition-colors"
+              className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-3 rounded-full text-lg font-semibold transition-colors inline-flex items-center space-x-2 group"
             >
-              Watch Demo
+              <span>Watch Demo</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
               href="/pricing"
-              className="border-2 border-gray-300 text-gray-700 hover:bg-gray-100 px-8 py-3 rounded-full text-lg font-semibold transition-colors"
+              className="border-2 border-gray-300 text-gray-700 hover:bg-gray-100 px-8 py-3 rounded-full text-lg font-semibold transition-colors inline-flex items-center space-x-2 group"
             >
-              View Pricing
+              <span>View Pricing</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
         </div>

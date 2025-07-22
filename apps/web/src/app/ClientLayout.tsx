@@ -2,9 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
+import { Menu, X } from 'lucide-react';
 
 function Header() {
   const pathname = usePathname();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Hide header on dashboard pages
   if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/admin')) {
@@ -23,6 +26,8 @@ function Header() {
               <h1 className="text-2xl font-bold text-gray-900">HostItHub.com</h1>
             </Link>
           </div>
+          
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
             <Link href="/pricing" className="text-gray-600 hover:text-blue-600 transition-colors duration-200 font-medium">
               Pricing
@@ -33,14 +38,13 @@ function Header() {
             <Link href="/consultation" className="text-gray-600 hover:text-blue-600 transition-colors duration-200 font-medium">
               Consultation
             </Link>
-          </nav>
-          <div className="flex items-center space-x-4">
-            <Link
-              href="/help"
-              className="text-gray-600 hover:text-blue-600 transition-colors duration-200 font-medium"
-            >
+            <Link href="/help" className="text-gray-600 hover:text-blue-600 transition-colors duration-200 font-medium">
               Help Center
             </Link>
+          </nav>
+          
+          {/* Desktop CTA Buttons */}
+          <div className="hidden md:flex items-center space-x-4">
             <Link
               href="/sign-in"
               className="text-gray-600 hover:text-blue-600 transition-colors duration-200 font-medium"
@@ -54,7 +58,73 @@ function Header() {
               Sign Up
             </Link>
           </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="text-gray-600 hover:text-blue-600 transition-colors"
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Navigation */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden py-4 border-t border-gray-200">
+            <nav className="flex flex-col space-y-4">
+              <Link 
+                href="/pricing" 
+                className="text-gray-600 hover:text-blue-600 transition-colors duration-200 font-medium"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Pricing
+              </Link>
+              <Link 
+                href="/demo" 
+                className="text-gray-600 hover:text-blue-600 transition-colors duration-200 font-medium"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Demo
+              </Link>
+              <Link 
+                href="/consultation" 
+                className="text-gray-600 hover:text-blue-600 transition-colors duration-200 font-medium"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Consultation
+              </Link>
+              <Link 
+                href="/help" 
+                className="text-gray-600 hover:text-blue-600 transition-colors duration-200 font-medium"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Help Center
+              </Link>
+              <div className="pt-4 border-t border-gray-200 space-y-3">
+                <Link
+                  href="/sign-in"
+                  className="block text-gray-600 hover:text-blue-600 transition-colors duration-200 font-medium"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/signup"
+                  className="block px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors text-center"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Sign Up
+                </Link>
+              </div>
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );
