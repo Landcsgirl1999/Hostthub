@@ -1,7 +1,7 @@
 {
   "name": "@hostithub/api",
   "version": "1.0.0",
-      "description": "Express API backend for HostItHub",
+  "description": "Express API backend for HostItHub",
   "private": true,
   "scripts": {
     "dev": "tsx watch src/index.ts",
@@ -15,6 +15,7 @@
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
+    "date-fns": "^4.1.0",
     "dotenv": "^16.0.0",
     "express": "^4.18.0",
     "express-rate-limit": "^6.7.0",

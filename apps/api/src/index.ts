@@ -9,6 +9,7 @@ import bcrypt from 'bcryptjs';
 // Import routes
 import authRoutes from './routes/auth';
 import usersRoutes from './routes/users';
+import invoicesRoutes from './routes/invoices';
 // import analyticsRoutes from './routes/analytics';
 // import billingRoutes from './routes/billing';
 // import calendarRoutes from './routes/calendar';
@@ -118,6 +119,7 @@ app.post('/simple-login', async (req: express.Request, res: express.Response) =>
 // API routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', usersRoutes);
+app.use('/api/v1/invoices', invoicesRoutes);
 // app.use('/api/v1/analytics', analyticsRoutes);
 // app.use('/api/v1/billing', billingRoutes);
 // app.use('/api/v1/calendar', calendarRoutes);
