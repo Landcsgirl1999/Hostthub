@@ -16,6 +16,7 @@ import {
   Plus,
   Check,
   Loader2,
+  Mail,
 } from "lucide-react";
 import NotificationSettings from "../../../components/NotificationSettings";
 import SecureBankInfo from "../../../components/SecureBankInfo";
@@ -178,9 +179,10 @@ export default function SettingsPage() {
   const tabs = [
     { id: "company", name: "Company", icon: User },
     { id: "billing", name: "Billing & Payment", icon: CreditCard },
+    { id: "invoices", name: "Invoices", icon: FileText },
+    { id: "charges", name: "Charges", icon: CreditCard },
     { id: "integrations", name: "Integrations", icon: Globe },
     { id: "notifications", name: "Notifications", icon: Bell },
-    { id: "invoices", name: "Invoice Templates", icon: FileText },
     { id: "security", name: "Security", icon: Shield },
     { id: "data", name: "Data & Privacy", icon: Database },
   ];
@@ -695,6 +697,193 @@ export default function SettingsPage() {
                       </div>
                       <button className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors">Enable</button>
                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            {/* Invoices Tab */}
+            {activeTab === "invoices" && (
+              <div className="space-y-8">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold text-gray-900">Invoice Management</h2>
+                  <button
+                    onClick={() => window.open('/admin/invoices', '_blank')}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-xl shadow-glow hover:shadow-lg transition-all duration-200 flex items-center space-x-2"
+                  >
+                    <FileText className="w-4 h-4" />
+                    <span>View All Invoices</span>
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Invoice Statistics */}
+                  <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
+                    <h3 className="text-lg font-semibold text-blue-800 mb-4">Invoice Overview</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Total Invoices:</span>
+                        <span className="font-semibold text-blue-800">24</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Pending:</span>
+                        <span className="font-semibold text-yellow-600">3</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Paid:</span>
+                        <span className="font-semibold text-green-600">21</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Total Revenue:</span>
+                        <span className="font-semibold text-blue-800">$2,847.50</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-xl p-6 border border-green-200">
+                    <h3 className="text-lg font-semibold text-green-800 mb-4">Quick Actions</h3>
+                    <div className="space-y-3">
+                      <button className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2">
+                        <Plus className="w-4 h-4" />
+                        <span>Create New Invoice</span>
+                      </button>
+                      <button className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2">
+                        <FileText className="w-4 h-4" />
+                        <span>Generate Monthly Invoice</span>
+                      </button>
+                      <button className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2">
+                        <Mail className="w-4 h-4" />
+                        <span>Send Payment Reminders</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recent Invoices */}
+                <div className="bg-white rounded-xl shadow-soft border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Invoices</h3>
+                  <div className="space-y-3">
+                    {[
+                      { id: 'INV-2024-001', amount: 299.99, status: 'Paid', date: '2024-07-15' },
+                      { id: 'INV-2024-002', amount: 199.99, status: 'Pending', date: '2024-07-20' },
+                      { id: 'INV-2024-003', amount: 399.99, status: 'Paid', date: '2024-07-10' }
+                    ].map((invoice) => (
+                      <div key={invoice.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <div className="font-medium text-gray-900">{invoice.id}</div>
+                          <div className="text-sm text-gray-500">{invoice.date}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold text-gray-900">${invoice.amount}</div>
+                          <div className={`text-sm ${invoice.status === 'Paid' ? 'text-green-600' : 'text-yellow-600'}`}>
+                            {invoice.status}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            {/* Charges Tab */}
+            {activeTab === "charges" && (
+              <div className="space-y-8">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold text-gray-900">Property Charges</h2>
+                  <button
+                    onClick={() => window.open('/admin/charges', '_blank')}
+                    className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-4 py-2 rounded-xl shadow-glow hover:shadow-lg transition-all duration-200 flex items-center space-x-2"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    <span>View All Charges</span>
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Charge Statistics */}
+                  <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-xl p-6 border border-green-200">
+                    <h3 className="text-lg font-semibold text-green-800 mb-4">Charge Overview</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Total Charges:</span>
+                        <span className="font-semibold text-green-800">156</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">This Month:</span>
+                        <span className="font-semibold text-blue-800">23</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Total Amount:</span>
+                        <span className="font-semibold text-green-800">$4,521.75</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Charge Types */}
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
+                    <h3 className="text-lg font-semibold text-purple-800 mb-4">Charge Types</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Subscription:</span>
+                        <span className="font-semibold text-purple-800">89</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Setup:</span>
+                        <span className="font-semibold text-pink-800">12</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Overage:</span>
+                        <span className="font-semibold text-purple-800">34</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Add-ons:</span>
+                        <span className="font-semibold text-pink-800">21</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Payment Status */}
+                  <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-6 border border-yellow-200">
+                    <h3 className="text-lg font-semibold text-yellow-800 mb-4">Payment Status</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Paid:</span>
+                        <span className="font-semibold text-green-600">142</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Pending:</span>
+                        <span className="font-semibold text-yellow-600">8</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Failed:</span>
+                        <span className="font-semibold text-red-600">6</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recent Charges */}
+                <div className="bg-white rounded-xl shadow-soft border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Charges</h3>
+                  <div className="space-y-3">
+                    {[
+                      { id: 'CHG-001', property: 'Beach House', type: 'Subscription', amount: 29.99, status: 'Paid' },
+                      { id: 'CHG-002', property: 'Mountain Cabin', type: 'Setup', amount: 99.00, status: 'Pending' },
+                      { id: 'CHG-003', property: 'City Apartment', type: 'Overage', amount: 15.50, status: 'Paid' }
+                    ].map((charge) => (
+                      <div key={charge.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <div className="font-medium text-gray-900">{charge.id}</div>
+                          <div className="text-sm text-gray-500">{charge.property} • {charge.type}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold text-gray-900">${charge.amount}</div>
+                          <div className={`text-sm ${charge.status === 'Paid' ? 'text-green-600' : 'text-yellow-600'}`}>
+                            {charge.status}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
