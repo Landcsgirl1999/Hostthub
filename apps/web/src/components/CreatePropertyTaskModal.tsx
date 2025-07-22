@@ -42,7 +42,7 @@ interface CreatePropertyTaskModalProps {
   onTaskCreated: (task: PropertyTask) => void;
   properties: Property[];
   staffMembers: User[];
-  currentUser: User | null;
+  currentUser?: User | null;
 }
 
 export default function CreatePropertyTaskModal({ 

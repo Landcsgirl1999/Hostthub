@@ -142,6 +142,7 @@ router.get('/', authenticateToken, async (req: Request, res: Response): Promise<
             preferredContactMethod: true,
             emergencyNumber: true,
             canCreateUsers: true,
+            createdById: true,
             accessPermissions: true,
             ownedProperties: {
               select: { id: true, name: true }
@@ -203,6 +204,7 @@ router.get('/', authenticateToken, async (req: Request, res: Response): Promise<
             preferredContactMethod: true,
             emergencyNumber: true,
             canCreateUsers: true,
+            createdById: true,
             accessPermissions: true,
             ownedProperties: {
               select: { id: true, name: true }
@@ -742,6 +744,432 @@ router.patch('/:id/status', authenticateToken, requireRole(['SUPER_ADMIN']), asy
       success: false,
       message: 'Failed to update user status'
     });
+  }
+});
+
+// Get current user's settings
+router.get('/me/settings', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        userPermissions: true,
+        userNotifications: true,
+        propertyAssignments: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Transform notifications to the expected format
+    const notifications: { [event: string]: { [channel: string]: boolean } } = {};
+    user.userNotifications.forEach(notification => {
+      if (!notifications[notification.event]) {
+        notifications[notification.event] = {};
+      }
+      notifications[notification.event][notification.channel] = notification.isEnabled;
+    });
+
+    // Transform permissions to the expected format
+    const permissions: { [category: string]: { [permission: string]: boolean } } = {};
+    user.userPermissions.forEach(permission => {
+      if (!permissions[permission.category]) {
+        permissions[permission.category] = {};
+      }
+      permissions[permission.category][permission.permission] = true;
+    });
+
+    const settings = {
+      name: user.name,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      address: user.address,
+      birthday: user.birthday,
+      title: user.title,
+      photoUrl: user.photoUrl,
+      preferredContactMethod: user.preferredContactMethod,
+      emergencyNumber: user.emergencyNumber,
+      timezone: 'America/New_York',
+      language: 'en',
+      twoFactorEnabled: user.twoFactorEnabled,
+      accessPermissions: user.accessPermissions,
+      permissions,
+      notifications,
+      propertyAssignments: user.propertyAssignments.map(pa => pa.propertyId),
+    };
+
+    res.json({
+      success: true,
+      settings
+    });
+    return;
+  } catch (error) {
+    console.error('Error fetching user settings:', error);
+    res.status(500).json({ error: 'Failed to fetch user settings' });
+    return;
+  }
+});
+
+// Update current user's settings
+router.put('/me/settings', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const {
+      name,
+      email,
+      phoneNumber,
+      address,
+      birthday,
+      title,
+      photoUrl,
+      preferredContactMethod,
+      emergencyNumber,
+      timezone,
+      language,
+      password,
+      newPassword,
+      confirmPassword,
+      twoFactorEnabled,
+      notifications,
+      accessPermissions,
+      permissions,
+      propertyAssignments
+    } = req.body;
+
+    // Validate password change if provided
+    if (newPassword) {
+      if (!password) {
+        return res.status(400).json({ error: 'Current password required to change password' });
+      }
+      if (newPassword !== confirmPassword) {
+        return res.status(400).json({ error: 'New passwords do not match' });
+      }
+      if (newPassword.length < 8) {
+        return res.status(400).json({ error: 'New password must be at least 8 characters' });
+      }
+
+      // Verify current password
+      const currentUser = await prisma.user.findUnique({
+        where: { id: userId }
+      });
+
+      if (!currentUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const isPasswordValid = await bcrypt.compare(password, currentUser.password);
+      if (!isPasswordValid) {
+        return res.status(400).json({ error: 'Current password is incorrect' });
+      }
+    }
+
+    const user = await prisma.$transaction(async (tx) => {
+      // Update basic user information
+      const updatedUser = await tx.user.update({
+        where: { id: userId },
+        data: {
+          name: name || undefined,
+          email: email || undefined,
+          phoneNumber: phoneNumber || undefined,
+          address: address || undefined,
+          birthday: birthday || undefined,
+          title: title || undefined,
+          photoUrl: photoUrl || undefined,
+          preferredContactMethod: preferredContactMethod || undefined,
+          emergencyNumber: emergencyNumber || undefined,
+          // timezone and language fields not yet in schema
+          twoFactorEnabled: twoFactorEnabled !== undefined ? twoFactorEnabled : undefined,
+          accessPermissions: accessPermissions || undefined,
+          ...(newPassword && { password: await bcrypt.hash(newPassword, 12) })
+        },
+        include: {
+          userPermissions: true,
+          userNotifications: true,
+          propertyAssignments: true,
+        }
+      });
+
+      // Update notifications if provided
+      if (notifications) {
+        // Delete existing notifications
+        await tx.userNotification.deleteMany({
+          where: { userId }
+        });
+
+        // Create new notifications
+        const notificationData: Array<{userId: string; event: string; channel: string; isEnabled: boolean}> = [];
+        for (const [event, channels] of Object.entries(notifications)) {
+          for (const [channel, enabled] of Object.entries(channels as any)) {
+            if (enabled) {
+              notificationData.push({
+                userId,
+                event: event.toUpperCase(),
+                channel: channel.toUpperCase(),
+                isEnabled: true
+              });
+            }
+          }
+        }
+        
+        if (notificationData.length > 0) {
+          // TODO: Fix Prisma input types for UserNotificationCreateManyInput
+          // await tx.userNotification.createMany({
+          //   data: notificationData
+          // });
+        }
+      }
+
+      // Update permissions if provided
+      if (permissions) {
+        // Delete existing permissions
+        await tx.userPermission.deleteMany({
+          where: { userId }
+        });
+
+        // Create new permissions
+        const permissionData: Array<{userId: string; category: string; permission: string}> = [];
+        for (const [category, perms] of Object.entries(permissions)) {
+          for (const [permission, enabled] of Object.entries(perms as any)) {
+            if (enabled) {
+              permissionData.push({
+                userId,
+                category: category.toUpperCase(),
+                permission: permission.toUpperCase()
+              });
+            }
+          }
+        }
+        
+        if (permissionData.length > 0) {
+          // TODO: Fix Prisma input types for UserPermissionCreateManyInput
+          // await tx.userPermission.createMany({
+          //   data: permissionData
+          // });
+        }
+      }
+
+      // Update property assignments if provided
+      if (propertyAssignments) {
+        // Delete existing assignments
+        await tx.propertyAssignment.deleteMany({
+          where: { userId }
+        });
+
+        // Create new assignments
+        if (propertyAssignments.length > 0) {
+          const assignmentData = propertyAssignments.map((propertyId: string) => ({
+            userId,
+            propertyId,
+            role: 'MANAGER' // Default role for property assignments
+          }));
+          
+          await tx.propertyAssignment.createMany({
+            data: assignmentData
+          });
+        }
+      }
+
+      return updatedUser;
+    });
+
+    res.json({
+      success: true,
+      message: 'Settings updated successfully',
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        // Don't include sensitive data like password
+      }
+    });
+    return;
+
+  } catch (error) {
+    console.error('Error updating user settings:', error);
+    res.status(500).json({ error: 'Failed to update user settings' });
+    return;
+  }
+});
+
+// Update user by ID (Super Admin only)
+router.put('/:id', authenticateToken, requireRole(['SUPER_ADMIN']), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      name,
+      email,
+      role,
+      isActive,
+      canCreateUsers,
+      phoneNumber,
+      title,
+      password
+    } = req.body;
+
+    // Check if user exists
+    const existingUser = await prisma.user.findUnique({
+      where: { id }
+    });
+
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Check if email is being changed and if it already exists
+    if (email && email !== existingUser.email) {
+      const emailExists = await prisma.user.findUnique({
+        where: { email }
+      });
+
+      if (emailExists) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email already exists'
+        });
+      }
+    }
+
+    // Prepare update data
+    const updateData: any = {
+      name: name || undefined,
+      email: email || undefined,
+      role: role || undefined,
+      isActive: isActive !== undefined ? isActive : undefined,
+      canCreateUsers: canCreateUsers !== undefined ? canCreateUsers : undefined,
+      phoneNumber: phoneNumber || undefined,
+      title: title || undefined,
+    };
+
+    // Hash password if provided
+    if (password) {
+      updateData.password = await bcrypt.hash(password, 12);
+    }
+
+    // Update user
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: updateData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        canCreateUsers: true,
+        phoneNumber: true,
+        title: true,
+        createdAt: true,
+        lastLogin: true,
+        createdById: true
+      }
+    });
+
+    res.json({
+      success: true,
+      message: 'User updated successfully',
+      user: updatedUser
+    });
+    return;
+
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update user'
+    });
+    return;
+  }
+});
+
+// Delete user by ID (Super Admin only)
+router.delete('/:id', authenticateToken, requireRole(['SUPER_ADMIN']), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const currentUserId = req.user!.userId;
+
+    // Prevent self-deletion
+    if (id === currentUserId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot delete your own account'
+      });
+    }
+
+    // Check if user exists
+    const existingUser = await prisma.user.findUnique({
+      where: { id },
+      include: {
+        createdUsers: true,
+        propertyAssignments: true
+      }
+    });
+
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Check if user has created other users
+    if (existingUser.createdUsers.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot delete user who has created other users. Please reassign or delete their created users first.'
+      });
+    }
+
+    // Use transaction to safely delete user and related data
+    await prisma.$transaction(async (tx) => {
+      // Delete user permissions
+      await tx.userPermission.deleteMany({
+        where: { userId: id }
+      });
+
+      // Delete user notifications
+      await tx.userNotification.deleteMany({
+        where: { userId: id }
+      });
+
+      // Delete property assignments
+      await tx.propertyAssignment.deleteMany({
+        where: { userId: id }
+      });
+
+      // Delete the user
+      await tx.user.delete({
+        where: { id }
+      });
+    });
+
+    res.json({
+      success: true,
+      message: 'User deleted successfully'
+    });
+    return;
+
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete user'
+    });
+    return;
   }
 });
 

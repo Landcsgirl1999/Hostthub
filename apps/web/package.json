@@ -1,7 +1,7 @@
 {
   "name": "@hostithub/web",
   "version": "1.0.0",
-      "description": "Next.js frontend for HostItHub",
+  "description": "Next.js frontend for HostItHub",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",

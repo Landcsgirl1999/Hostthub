@@ -14,7 +14,7 @@ export async function GET(
     const token = authHeader.substring(7);
     
     // Verify token with backend
-    const verifyResponse = await fetch(`${process.env.API_URL || 'http://localhost:4000'}/api/v1/auth/verify`, {
+    const verifyResponse = await fetch(`${process.env.API_URL || 'http://localhost:3001'}/api/v1/auth/verify`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -36,7 +36,7 @@ export async function GET(
     const { id } = await params;
 
     // Get user from backend
-    const userResponse = await fetch(`${process.env.API_URL || 'http://localhost:4000'}/api/v1/users/${id}`, {
+    const userResponse = await fetch(`${process.env.API_URL || 'http://localhost:3001'}/api/v1/users/${id}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -73,67 +73,37 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Verify authentication
     const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!authHeader) {
+      return NextResponse.json({ error: 'Authorization header required' }, { status: 401 });
     }
 
-    const token = authHeader.substring(7);
-    
-    // Verify token with backend
-    const verifyResponse = await fetch(`${process.env.API_URL || 'http://localhost:4000'}/api/v1/auth/verify`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!verifyResponse.ok) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-
-    const userData = await verifyResponse.json();
-    
-    // Check if user has permission to update users
-    if (!['SUPER_ADMIN', 'ADMIN'].includes(userData.user.role)) {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
-    }
-
-    const body = await request.json();
     const { id } = await params;
-
-    // Update user via backend
-    const updateResponse = await fetch(`${process.env.API_URL || 'http://localhost:4000'}/api/v1/users/${id}`, {
+    const body = await request.json();
+    console.log('📝 Frontend proxy: Updating user', id, 'with data:', body);
+    
+    // Direct call to backend without token verification
+    const response = await fetch(`http://localhost:3001/api/v1/users/${id}`, {
       method: 'PUT',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        'Authorization': authHeader,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),
     });
 
-    if (!updateResponse.ok) {
-      const errorData = await updateResponse.json();
-      return NextResponse.json(
-        { error: errorData.message || 'Failed to update user' },
-        { status: updateResponse.status }
-      );
+    const data = await response.json();
+    console.log('📝 Frontend proxy: Backend response status:', response.status, 'data:', data);
+
+    if (!response.ok) {
+      return NextResponse.json(data, { status: response.status });
     }
 
-    const updatedUser = await updateResponse.json();
-
-    return NextResponse.json({
-      success: true,
-      data: updatedUser,
-      message: 'User updated successfully'
-    });
-
+    return NextResponse.json(data);
   } catch (error) {
-    console.error('Error updating user:', error);
+    console.error('User update proxy error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to update user' },
       { status: 500 }
     );
   }
@@ -144,70 +114,30 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Verify authentication
     const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const token = authHeader.substring(7);
-    
-    // Verify token with backend
-    const verifyResponse = await fetch(`${process.env.API_URL || 'http://localhost:4000'}/api/v1/auth/verify`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!verifyResponse.ok) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-
-    const userData = await verifyResponse.json();
-    
-    // Check if user has permission to delete users
-    if (!['SUPER_ADMIN'].includes(userData.user.role)) {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+    if (!authHeader) {
+      return NextResponse.json({ error: 'Authorization header required' }, { status: 401 });
     }
 
     const { id } = await params;
-
-    // Prevent self-deletion
-    if (id === userData.user.id) {
-      return NextResponse.json(
-        { error: 'Cannot delete your own account' },
-        { status: 400 }
-      );
-    }
-
-    // Delete user via backend
-    const deleteResponse = await fetch(`${process.env.API_URL || 'http://localhost:4000'}/api/v1/users/${id}`, {
+    const response = await fetch(`http://localhost:3001/api/v1/users/${id}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
+        'Authorization': authHeader,
       },
     });
 
-    if (!deleteResponse.ok) {
-      const errorData = await deleteResponse.json();
-      return NextResponse.json(
-        { error: errorData.message || 'Failed to delete user' },
-        { status: deleteResponse.status }
-      );
+    const data = await response.json();
+
+    if (!response.ok) {
+      return NextResponse.json(data, { status: response.status });
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'User deleted successfully'
-    });
-
+    return NextResponse.json(data);
   } catch (error) {
-    console.error('Error deleting user:', error);
+    console.error('User delete proxy error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to delete user' },
       { status: 500 }
     );
   }

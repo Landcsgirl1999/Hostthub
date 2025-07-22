@@ -31,7 +31,7 @@ interface User {
   email: string;
   role: string;
   isActive: boolean;
-  canTimeTrack: boolean;
+  canTimeTrack?: boolean;
   assignedProperties: string[];
 }
 

@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { GoogleCalendarService } from '../../../../lib/google-calendar';
 
 export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const startDate = searchParams.get('startDate');
+  const endDate = searchParams.get('endDate');
+  const userId = searchParams.get('userId');
+
   try {
-    const { searchParams } = new URL(request.url);
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
-    const userId = searchParams.get('userId');
 
     console.log('🔍 API Request Details:', {
       startDate,

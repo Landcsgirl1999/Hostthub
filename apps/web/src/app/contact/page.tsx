@@ -51,47 +51,6 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      {/* Header */}
-      <header className="relative bg-white/80 backdrop-blur-md border-b border-white/20 shadow-soft">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-3">
-              <Link href="/" className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-glow">
-                  <span className="text-white font-bold text-xl">H</span>
-                </div>
-                <h1 className="text-2xl font-bold text-gray-900">Hostithub.com</h1>
-              </Link>
-            </div>
-            <nav className="hidden md:flex space-x-8">
-              <Link href="/pricing" className="text-gray-600 hover:text-blue-600 transition-colors duration-200 font-medium">
-                Pricing
-              </Link>
-              <Link href="/demo" className="text-gray-600 hover:text-blue-600 transition-colors duration-200 font-medium">
-                Demo
-              </Link>
-              <Link href="/consultation" className="text-gray-600 hover:text-blue-600 transition-colors duration-200 font-medium">
-                Consultation
-              </Link>
-            </nav>
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/help"
-                className="text-gray-600 hover:text-blue-600 transition-colors duration-200 font-medium"
-              >
-                Help Center
-              </Link>
-              <Link
-                href="/sign-in"
-                className="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
-              >
-                Sign In
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Section */}

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Home, Users, Calendar, ArrowRight, Building2, Clock, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { subMonths, addMonths } from 'date-fns';
+import TimeTrackingModal from '../../../components/TimeTrackingModal';
 
 interface User {
   id: string;
@@ -57,9 +58,9 @@ export default function TaskCalendarPage() {
 
   // Mock data for TimeTrackingModal
   const mockStaffMembers = [
-    { id: '1', name: 'John Doe', email: 'john.doe@hostit.com' },
-    { id: '2', name: 'Jane Smith', email: 'jane.smith@hostit.com' },
-    { id: '3', name: 'Peter Jones', email: 'peter.jones@hostit.com' },
+    { id: '1', name: 'John Doe', email: 'john.doe@hostit.com', role: 'EMPLOYEE', isActive: true, assignedProperties: ['beach1', 'beach2'] },
+    { id: '2', name: 'Jane Smith', email: 'jane.smith@hostit.com', role: 'EMPLOYEE', isActive: true, assignedProperties: ['mountain', 'ocean'] },
+    { id: '3', name: 'Peter Jones', email: 'peter.jones@hostit.com', role: 'EMPLOYEE', isActive: true, assignedProperties: ['penthouse'] },
   ];
 
   const mockPropertyTasks = [

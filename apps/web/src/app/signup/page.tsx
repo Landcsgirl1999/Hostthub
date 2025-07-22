@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CreditCard, Building, Apple, Chrome, CheckCircle, ArrowRight, Info } from 'lucide-react';
@@ -16,7 +16,7 @@ interface PricingPlan {
   popular: boolean;
 }
 
-export default function SignupPage() {
+function SignupPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pricingModel = searchParams.get('pricing') || 'full-price';
@@ -224,6 +224,12 @@ export default function SignupPage() {
       return;
     }
 
+    // Check 5 property limit for users without consultation
+    if (propertyCount > 5) {
+      setError('You can manage up to 5 properties without a consultation. For portfolios with more than 5 properties, please schedule a consultation with our team to discuss your needs.');
+      return;
+    }
+
     if (!isCommissionModelValid()) {
       setError('The $9.99 per property + 8% commission option is only available for portfolios with 1-5 properties. Please select a different pricing model or reduce your property count.');
       return;
@@ -356,6 +362,33 @@ export default function SignupPage() {
         {/* Step 1: Account Creation */}
         {step === 'account' && (
           <div className="bg-white rounded-xl shadow-lg p-8">
+            {/* Admin Only Notice */}
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-amber-800">
+                    For Property Managers & Self-Managing Homeowners
+                  </h3>
+                  <div className="mt-2 text-sm text-amber-700">
+                    <p>
+                      This sign-up is for <strong>property management companies, administrators, and homeowners managing their own properties</strong>.
+                    </p>
+                    <p className="mt-1">
+                      If you're a homeowner or client under a management company, please contact your property manager to create your account.
+                    </p>
+                    <p className="mt-1">
+                      <strong>Note:</strong> You can manage up to 5 properties without a consultation. For portfolios with more than 5 properties, please schedule a consultation with our team.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="text-center mb-8">
               <h1 className="text-3xl font-bold text-gray-900 mb-4">Create Your Account</h1>
               <p className="text-gray-600">Get started with Hostithub property management</p>
@@ -441,18 +474,16 @@ export default function SignupPage() {
                     type="number"
                     name="propertyCount"
                     min="1"
-                    max={pricingModel === 'commission' ? 5 : 100}
+                    max="5"
                     value={formData.propertyCount}
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                     placeholder="Enter number of properties"
                   />
-                  {pricingModel === 'commission' && (
-                    <p className="text-xs text-blue-600 mt-1">
-                      Maximum 5 properties for commission pricing model
-                    </p>
-                  )}
+                  <p className="text-xs text-amber-600 mt-1">
+                    Maximum 5 properties without consultation. For larger portfolios, please schedule a consultation.
+                  </p>
                 </div>
               </div>
 
@@ -506,7 +537,7 @@ export default function SignupPage() {
                       <div className="flex justify-between items-center">
                         <span className="text-gray-700 flex items-center">
                           Processing Fee (3%)
-                          <Info className="w-4 h-4 ml-1 text-blue-500 cursor-help" title="Covers secure payment processing and card network fees" />
+                          <Info className="w-4 h-4 ml-1 text-blue-500 cursor-help" />
                         </span>
                         <span className="text-gray-900">${processingFee.toFixed(2)}</span>
                       </div>
@@ -551,6 +582,15 @@ export default function SignupPage() {
                     Sign in
                   </Link>
                 </p>
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <strong>Need to manage more than 5 properties?</strong>{' '}
+                    <Link href="/consultation" className="text-blue-600 hover:text-blue-700 font-medium underline">
+                      Schedule a consultation
+                    </Link>{' '}
+                    with our team to discuss your specific needs and get a custom solution.
+                  </p>
+                </div>
               </div>
             </form>
           </div>
@@ -764,7 +804,7 @@ export default function SignupPage() {
                     <div className="text-sm text-gray-700 flex justify-between">
                       <span className="flex items-center">
                         Processing Fee (3%)
-                        <Info className="w-4 h-4 ml-1 text-blue-500 cursor-help" title="Covers secure payment processing and card network fees" />
+                                                  <Info className="w-4 h-4 ml-1 text-blue-500 cursor-help" />
                       </span>
                       <span>${processingFee.toFixed(2)}</span>
                     </div>
@@ -835,5 +875,13 @@ export default function SignupPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignupPageContent />
+    </Suspense>
   );
 } 

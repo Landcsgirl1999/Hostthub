@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
+    
     // Verify authentication
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -44,7 +46,7 @@ export async function PATCH(
     }
 
     // Prevent self-deactivation
-    if (params.id === userData.user.id && !body.isActive) {
+    if (resolvedParams.id === userData.user.id && !body.isActive) {
       return NextResponse.json(
         { error: 'Cannot deactivate your own account' },
         { status: 400 }
@@ -52,7 +54,7 @@ export async function PATCH(
     }
 
     // Update user status via backend
-    const statusResponse = await fetch(`${process.env.API_URL || 'http://localhost:4000'}/api/v1/auth/users/${params.id}/status`, {
+    const statusResponse = await fetch(`${process.env.API_URL || 'http://localhost:4000'}/api/v1/auth/users/${resolvedParams.id}/status`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`,

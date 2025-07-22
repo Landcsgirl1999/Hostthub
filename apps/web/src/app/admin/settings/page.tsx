@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import NotificationSettings from "../../../components/NotificationSettings";
 import SecureBankInfo from "../../../components/SecureBankInfo";
-import PaymentMethodsManager from "../../../components/PaymentMethodsManager";
+
 
 interface BillingInfo {
   propertyCount: number;
@@ -441,7 +441,12 @@ export default function SettingsPage() {
                     )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="md:col-span-2">
-                        <PaymentMethodsManager />
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                          <h3 className="text-lg font-semibold mb-4 text-blue-800">Payment Methods</h3>
+                          <p className="text-blue-700">
+                            Payment integration is currently being set up. Please contact support for payment method management.
+                          </p>
+                        </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Tax Rate (%)</label>

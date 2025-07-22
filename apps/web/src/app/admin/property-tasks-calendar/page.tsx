@@ -776,6 +776,7 @@ export default function PropertyTasksCalendarPage() {
           onTaskCreated={handleTaskCreated}
           properties={getFilteredProperties()}
           employees={employees}
+          currentUser={currentUser}
         />
       )}
 

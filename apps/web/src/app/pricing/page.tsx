@@ -320,23 +320,6 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <Link href="/" className="text-2xl font-bold text-gray-900 hover:text-blue-600 transition-colors duration-200">
-                Hostithub.com
-              </Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link href="/sign-in" className="text-gray-600 hover:text-gray-900">Sign In</Link>
-              <Link href="/signup" className="text-gray-600 hover:text-gray-900">Sign Up</Link>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center">

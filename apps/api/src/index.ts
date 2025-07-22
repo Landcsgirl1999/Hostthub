@@ -92,7 +92,7 @@ app.post('/simple-login', async (req: express.Request, res: express.Response) =>
         email: user.email, 
         role: user.role 
       },
-      process.env.JWT_SECRET || 'your-secret-key',
+      process.env.JWT_SECRET || 'hostit-super-secret-jwt-key-2024',
       { expiresIn: '24h' }
     );
     

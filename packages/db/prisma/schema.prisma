@@ -25,6 +25,8 @@ model User {
   photoUrl               String?
   preferredContactMethod PreferredContactMethod? @default(EMAIL)
   emergencyNumber        String?
+  timezone               String?                 @default("America/New_York")
+  language               String?                 @default("en")
   accessPermissions      AccessPermission[]
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt

@@ -525,8 +525,7 @@ export default function PropertyTasksPage() {
         <CreatePropertyTaskModal
           isOpen={showCreateTaskModal}
           onClose={handleTaskCancel}
-          onSave={handleTaskSave}
-          task={selectedTask}
+          onTaskCreated={handleTaskSave}
           properties={properties}
           staffMembers={staffMembers}
         />

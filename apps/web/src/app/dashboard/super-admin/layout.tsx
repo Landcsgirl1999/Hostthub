@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { UserCheck, LogOut } from 'lucide-react';
 
 export default function SuperAdminLayout({
   children,
@@ -11,12 +12,16 @@ export default function SuperAdminLayout({
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [isImpersonating, setIsImpersonating] = useState(false);
+  const [impersonatedUser, setImpersonatedUser] = useState<any>(null);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
     const token = localStorage.getItem('authToken');
+    const impersonationToken = localStorage.getItem('impersonationToken');
+    const impersonatedUserData = localStorage.getItem('impersonatedUser');
     
     if (!userData || !token) {
       router.push('/sign-in');
@@ -27,6 +32,12 @@ export default function SuperAdminLayout({
     if (userObj.role !== 'SUPER_ADMIN') {
       router.push('/sign-in');
       return;
+    }
+
+    // Check if we're impersonating someone
+    if (impersonationToken && impersonatedUserData) {
+      setIsImpersonating(true);
+      setImpersonatedUser(JSON.parse(impersonatedUserData));
     }
 
     setUser(userObj);
@@ -63,6 +74,15 @@ export default function SuperAdminLayout({
     );
   }
 
+  const stopImpersonation = () => {
+    localStorage.removeItem('impersonationToken');
+    localStorage.removeItem('impersonatedUser');
+    setIsImpersonating(false);
+    setImpersonatedUser(null);
+    // Refresh the page to reset the state
+    window.location.reload();
+  };
+
   const sidebarItems = [
     { id: 'overview', label: 'Overview', icon: '📊', path: '/dashboard/super-admin' },
     { id: 'users', label: 'Users', icon: '👥', path: '/dashboard/super-admin/users' },
@@ -94,13 +114,31 @@ export default function SuperAdminLayout({
           <div className="p-6 border-b border-blue-100">
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-semibold text-lg">{user?.name?.charAt(0)}</span>
+                <span className="text-white font-semibold text-lg">
+                  {isImpersonating ? impersonatedUser?.name?.charAt(0) : user?.name?.charAt(0)}
+                </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">{user?.name}</p>
-                <p className="text-xs text-blue-600">Super Admin</p>
+                <p className="text-sm font-semibold text-gray-900 truncate">
+                  {isImpersonating ? impersonatedUser?.name : user?.name}
+                </p>
+                <p className="text-xs text-blue-600">
+                  {isImpersonating ? `Impersonating ${impersonatedUser?.role}` : 'Super Admin'}
+                </p>
+                {isImpersonating && (
+                  <p className="text-xs text-orange-600 mt-1">As {user?.name}</p>
+                )}
               </div>
             </div>
+            {isImpersonating && (
+              <button
+                onClick={stopImpersonation}
+                className="mt-3 w-full flex items-center justify-center space-x-2 px-3 py-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors text-sm"
+              >
+                <UserCheck className="w-4 h-4" />
+                <span>Stop Impersonation</span>
+              </button>
+            )}
           </div>
 
           {/* Navigation Menu */}
@@ -187,6 +225,22 @@ export default function SuperAdminLayout({
               </div>
               
               <div className="flex items-center space-x-4">
+                {/* Impersonation Indicator */}
+                {isImpersonating && (
+                  <div className="flex items-center space-x-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-lg border border-orange-200">
+                    <UserCheck className="w-4 h-4" />
+                    <span className="text-sm font-medium">
+                      Impersonating {impersonatedUser?.name}
+                    </span>
+                    <button
+                      onClick={stopImpersonation}
+                      className="ml-2 text-orange-600 hover:text-orange-800"
+                    >
+                      <LogOut className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+                
                 {/* Search */}
                 <div className="relative">
                   <input
@@ -255,7 +309,10 @@ export default function SuperAdminLayout({
                           </svg>
                           <span>Profile</span>
                         </button>
-                        <button className="w-full flex items-center space-x-3 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300">
+                        <button 
+                          onClick={() => router.push('/dashboard/super-admin/settings')}
+                          className="w-full flex items-center space-x-3 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300"
+                        >
                           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
